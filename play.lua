@@ -5,22 +5,22 @@ local audio_data = cfs_get("redsuninthesky.dfpwm")
 
 local decoder = dfpwm.make_decoder()
 
-function linesFromString(str, chunkSize)
-  local index = 1
-  return function()
-    if index <= #str then
-      local chunk = str:sub(index, index + chunkSize - 1)
-      index = index + chunkSize
-      return chunk
+-- Print some debug information
+print("Number of speakers found:", speakers and 1 or 0)
+print("Length of audio data:", #audio_data)
+
+local chunkSize = 16 * 1024  -- Adjust chunk size as needed
+
+function playAudioChunk(chunk)
+  for _, speaker in ipairs({speakers}) do
+    local buffer = decoder(chunk)
+    while not speaker.playAudio(buffer) do
+      os.pullEvent("speaker_audio_empty")
     end
   end
 end
 
-for chunk in linesFromString(audio_data, 16 * 1024) do
-  local buffer = decoder(chunk)
-  for i = 1, speakers.n do
-    while not speakers[i].playAudio(buffer) do
-        os.pullEvent("speaker_audio_empty")
-    end
-  end
+-- Play the audio in chunks
+for chunk in audio_data:gmatch(".-"..string.rep(".", chunkSize)) do
+  playAudioChunk(chunk)
 end
