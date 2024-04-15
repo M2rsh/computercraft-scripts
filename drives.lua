@@ -153,10 +153,15 @@ end
 
 function cfs_list()
   print("Files stored on disks:")
+  local seenFiles = {}  -- Set to keep track of seen filenames
   for _, diskPath in ipairs(diskPaths) do
     local files = fs.list(diskPath)
     for _, filename in ipairs(files) do
-      print("- " .. filename)
+      local basename = filename:match("%d+_(.*)")  -- Extract the basename after the partition number
+      if not seenFiles[basename] then
+        print("- " .. basename)
+        seenFiles[basename] = true  -- Mark filename as seen
+      end
     end
   end
 end
