@@ -151,6 +151,10 @@ function cfs_list()
 end
 
 function cfs_store(filepath)
+  if not fs.exists(filepath) then
+    print("File not found.")
+    return nil
+  end
   local filename = fs.getName(filepath)
   local fileSize = fs.getSize(filepath)
   local file = fs.open(filepath, "r")
@@ -159,8 +163,10 @@ function cfs_store(filepath)
   local success = storeFile(filename, content)
   if success then
     print("File stored successfully on disk:", success)
+    return true
   else
     print("Failed to store file on disk:", success)
+    return false
   end
 end
 
