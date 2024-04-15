@@ -1,7 +1,7 @@
 local dfpwm = require("cc.audio.dfpwm")
 local speakers = table.pack(peripheral.find("speaker"))
 local drives = require("drives")
-local audio_data = cfs_get("redsuninthesky.dfpwm")
+local audio_data = cfs_get("liubushka.dfpwm")
 
 local decoder = dfpwm.make_decoder()
 
