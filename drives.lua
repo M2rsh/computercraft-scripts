@@ -1,6 +1,5 @@
 local chunkSize = 125000
 
-
 local function generateDiskPaths()
   local diskPaths = {}
   local diskIndex = 1
@@ -173,11 +172,9 @@ end
 function cfs_get(filepath)
   local content = getFile(filepath)
   if content then
-    print(content)
     return content
   else
-    print("File not found.")
-    return false
+    return nil
   end
 end
 
@@ -210,14 +207,15 @@ if not pcall(getfenv, 4) then
     else
       local action = parts[1]
       if action == "store" then
-        local filepath = parts[2]
-        cfs_store(filepath)
+        cfs_store(parts[2])
       elseif action == "get" then
-        local filepath = parts[2]
-        cfs_get(filepath)
+        local result = cfs_get(parts[2])
+        if result ~= nil then
+          print(result)
+        else
+          print("File not found.")
       elseif action == "delete" then
-        local filepath = parts[2]
-        cfs_delete(filepath)
+        cfs_delete(parts[2])
       elseif action == "ls" then
         cfs_list()
       elseif action == "exit" then
