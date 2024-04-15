@@ -16,14 +16,11 @@ function linesFromString(str, chunkSize)
   end
 end
 
-local funcs = {}
 for chunk in linesFromString(audio_data, 16 * 1024) do
   local buffer = decoder(chunk)
-  for i = 1, #speakers do
-    funcs[i] = function()
-      while not speakers[i].playAudio(buffer) do
+  for i = 1, speakers.n do
+    while not speakers[i].playAudio(buffer) do
         os.pullEvent("speaker_audio_empty")
-      end
     end
   end
 end
