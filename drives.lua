@@ -214,6 +214,7 @@ if not pcall(getfenv, 4) then
           print(result)
         else
           print("File not found.")
+        end
       elseif action == "delete" then
         cfs_delete(parts[2])
       elseif action == "ls" then
