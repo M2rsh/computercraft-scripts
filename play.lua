@@ -12,7 +12,7 @@ print("Length of audio data:", #audio_data)
 local chunkSize = 16 * 1024  -- Adjust chunk size as needed
 
 function playAudioChunk(chunk)
-  for _, speaker in ipairs({speakers}) do
+  for _, speaker in ipairs(speakers) do
     local buffer = decoder(chunk)
     while not speaker.playAudio(buffer) do
       os.pullEvent("speaker_audio_empty")
