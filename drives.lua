@@ -1,5 +1,7 @@
 local chunkSize = 125000
 
+local lualzw = require("lualzw")
+
 local function generateDiskPaths()
   local diskPaths = {}
   local diskIndex = 1
@@ -41,10 +43,6 @@ local function getDiskForFile(filename, fileSize)
   return selectedDisk
 end
 
-local function listDisks()
-  return diskPaths
-end
-
 local function downloadFile(url)
   local response = http.get(url)
   if response then
@@ -70,15 +68,15 @@ local function storeChunk(diskPath, filename, content)
 end
 
 local function storeFile(filename, content)
-  local fileSize = #content
-  --local chunkSize = 128 * 1024 -- 128 KB chunk size
+  local compressedContent = lualzw.compress(content)
+  local fileSize = #compressedContent
   local numChunks = math.ceil(fileSize / chunkSize)
   local success = true
 
   for i = 1, numChunks do
     local startByte = (i - 1) * chunkSize + 1
     local endByte = math.min(i * chunkSize, fileSize)
-    local chunkContent = content:sub(startByte, endByte)
+    local chunkContent = compressedContent:sub(startByte, endByte)
 
     local diskPath = getDiskForFile(filename, #chunkContent)
     if diskPath then
@@ -115,7 +113,7 @@ local function getFileChunk(filename, chunkIndex)
     local file = fs.open(fullPath, "r")
     local content = file.readAll()
     file.close()
-    return content
+    return lualzw.decompress(content)
   else
     return nil
   end
@@ -124,12 +122,10 @@ end
 local function getFile(filename)
   local content = ""
   local i = 1
-  local chunkFilename = i .. "_" .. filename
   local chunkContent = getFileChunk(filename, i)
   while chunkContent do
     content = content .. chunkContent
     i = i + 1
-    chunkFilename = i .. "_" .. filename
     chunkContent = getFileChunk(filename, i)
   end
   if content ~= "" then
@@ -153,10 +149,15 @@ end
 
 function cfs_list()
   print("Files stored on disks:")
+  local seenFiles = {}  -- Set to keep track of seen filenames
   for _, diskPath in ipairs(diskPaths) do
     local files = fs.list(diskPath)
     for _, filename in ipairs(files) do
-      print("- " .. filename)
+      local basename = filename:match("%d+_(.*)")  -- Extract the basename after the partition number
+      if not seenFiles[basename] then
+        print("- " .. basename)
+        seenFiles[basename] = true  -- Mark filename as seen
+      end
     end
   end
 end
@@ -185,7 +186,6 @@ function cfs_store(filepath)
     return nil
   end
   local filename = fs.getName(filepath)
-  local fileSize = fs.getSize(filepath)
   local file = fs.open(filepath, "r")
   local content = file.readAll()
   file.close()
@@ -255,7 +255,7 @@ if not pcall(getfenv, 4) then
         print("Exiting..")
         return
       else
-        print("Invalid command. Valid commands are: store, get, delete, ls, exit")
+        print("Invalid command. Valid commands are: store, get, delete, ls, download, exit")
       end
     end
   end
