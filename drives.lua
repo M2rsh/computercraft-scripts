@@ -98,7 +98,7 @@ end
 
 local function getFileChunkPath(filename, chunkIndex)
   for _, diskPath in ipairs(diskPaths) do
-    local chunkFilename = filename .. "_" .. chunkIndex
+    local chunkFilename = chunkIndex .. "_" .. filename
     local fullPath = diskPath .. "/" .. chunkFilename
     if fs.exists(fullPath) then
       return fullPath
