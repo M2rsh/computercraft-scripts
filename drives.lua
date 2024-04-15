@@ -45,6 +45,18 @@ local function listDisks()
   return diskPaths
 end
 
+local function downloadFile(url)
+  local response = http.get(url)
+  if response then
+    local content = response.readAll()
+    response.close()
+    return content
+  else
+    print("Failed to download file from URL:", url)
+    return nil
+  end
+end
+
 -- Function to store a chunk of file
 local function storeChunk(diskPath, filename, content)
   local file = fs.open(diskPath .. "/" .. filename, "w")
@@ -149,6 +161,24 @@ function cfs_list()
   end
 end
 
+function cfs_download(url)
+  local filename = fs.getName(url)
+  local content = downloadFile(url)
+  if content then
+    local success = storeFile(filename, content)
+    if success then
+      print("File downloaded and stored successfully.")
+      return true
+    else
+      print("Failed to store downloaded file.")
+      return false
+    end
+  else
+    print("Failed to download file from URL:", url)
+    return false
+  end
+end
+
 function cfs_store(filepath)
   if not fs.exists(filepath) then
     print("File not found.")
@@ -219,6 +249,8 @@ if not pcall(getfenv, 4) then
         cfs_delete(parts[2])
       elseif action == "ls" then
         cfs_list()
+      elseif action == "download" then
+        cfs_download(parts[2])
       elseif action == "exit" then
         print("Exiting..")
         return
