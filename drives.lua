@@ -82,7 +82,7 @@ local function storeFile(filename, content)
 
     local diskPath = getDiskForFile(filename, #chunkContent)
     if diskPath then
-      local chunkFilename = filename .. "_" .. i
+      local chunkFilename = i .. "_" .. filename
       if not storeChunk(diskPath, chunkFilename, chunkContent) then
         success = false
         print("Failed to store chunk " .. i .. " on disk:", diskPath)
@@ -124,12 +124,12 @@ end
 local function getFile(filename)
   local content = ""
   local i = 1
-  local chunkFilename = filename .. "_" .. i
+  local chunkFilename = i .. "_" .. filename
   local chunkContent = getFileChunk(filename, i)
   while chunkContent do
     content = content .. chunkContent
     i = i + 1
-    chunkFilename = filename .. "_" .. i
+    chunkFilename = i .. "_" .. filename
     chunkContent = getFileChunk(filename, i)
   end
   if content ~= "" then
