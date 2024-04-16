@@ -294,7 +294,11 @@ if not pcall(getfenv, 4) then
         if cfs_paths(parts[2]) == nil then print("Cannot get '" .. parts[2] .. "'") end
       end
     elseif action == "download" then
-      cfs_download(parts[2])
+      if parts[2] == nil then
+        printColouredText("This command requires an argument\n", colours.red)
+      else
+        cfs_download(parts[2])
+      end
     elseif action == "exit" then
       print("Exiting..")
       return
