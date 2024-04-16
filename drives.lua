@@ -185,7 +185,7 @@ function cfs_paths(filename)
     local files = fs.list(diskPath)
     for _, _filename in ipairs(files) do
       if _filename:match("%d+_"..filename) then
-        printColouredText(diskPath..'\n', colours.yellow)
+        printColouredText(diskPath..'/'.._filename..'\n', colours.yellow)
       end
     end
   end
