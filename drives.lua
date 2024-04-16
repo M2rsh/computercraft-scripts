@@ -1,5 +1,16 @@
 local chunkSize = 125000
 
+-- There should be a better way to do this and there probably is
+function printColouredText(content, colour, backgroundColor)
+  if backgroundColor ~= nil then
+    term.setBackgroundColour(backgroundColor)
+  end
+  term.setTextColour(colour)
+  io.write(content)
+  term.setTextColour(colours.white)
+  term.setBackgroundColour(colours.black)
+end
+
 local function generateDiskPaths()
   local diskPaths = {}
   local diskIndex = 1
@@ -143,6 +154,7 @@ end
 local function deleteFile(filename)
   local i = 1
   local chunkPath = getFileChunkPath(filename, i)
+  if chunkPath == nil then return false end
   while chunkPath do
     fs.delete(chunkPath)
     i = i + 1
@@ -153,17 +165,31 @@ end
 
 function cfs_list()
   print("Files stored on disks:")
-  local seenFiles = {}  -- Set to keep track of seen filenames
+  local seenFiles = {} -- Set to keep track of seen filenames
   for _, diskPath in ipairs(diskPaths) do
     local files = fs.list(diskPath)
     for _, filename in ipairs(files) do
-      local basename = filename:match("%d+_(.*)")  -- Extract the basename after the partition number
+      local basename = filename:match("%d+_(.*)") -- Extract the basename after the partition number
       if not seenFiles[basename] then
-        print("- " .. basename)
-        seenFiles[basename] = true  -- Mark filename as seen
+        printColouredText("- " .. basename .. "\n", colours.lime)
+        seenFiles[basename] = true -- Mark filename as seen
       end
     end
   end
+end
+
+function cfs_paths(filename)
+  if filename == nil then return nil end
+  print("Paths: ")
+  for _, diskPath in ipairs(diskPaths) do
+    local files = fs.list(diskPath)
+    for _, _filename in ipairs(files) do
+      if _filename:match("%d+_"..filename) then
+        printColouredText(diskPath..'\n', colours.yellow)
+      end
+    end
+  end
+  return true -- todo return paths
 end
 
 function cfs_download(url)
@@ -215,19 +241,18 @@ end
 function cfs_delete(filepath)
   local success = deleteFile(filepath)
   if success then
-    print("File deleted successfully.")
     return true
   else
-    print("Failed to delete file.")
     return false
   end
 end
 
+-- This is horrible
 if not pcall(getfenv, 4) then
   -- Interactive command processing loop
   while true do
     -- Read command from the user
-    io.write("> ")
+    printColouredText("> ", colours.lightBlue)
     local command = io.read()
 
     -- Parse the command
@@ -236,31 +261,45 @@ if not pcall(getfenv, 4) then
       table.insert(parts, part)
     end
 
-    if #parts == 0 then
-      print("Please enter a command.")
-    else
-      local action = parts[1]
-      if action == "store" then
-        cfs_store(parts[2])
-      elseif action == "get" then
-        local result = cfs_get(parts[2])
-        if result ~= nil then
-          print(result)
-        else
-          print("File not found.")
-        end
-      elseif action == "delete" then
-        cfs_delete(parts[2])
-      elseif action == "ls" then
-        cfs_list()
-      elseif action == "download" then
-        cfs_download(parts[2])
-      elseif action == "exit" then
-        print("Exiting..")
-        return
+    local action = parts[1]
+    if action == "put" then
+      if parts[2] == nil then
+        printColouredText("This command requires an argument\n", colours.red)
+        -- me when no continue :(
       else
-        print("Invalid command. Valid commands are: store, get, delete, ls, exit")
+        cfs_store(parts[2])
       end
+    elseif action == "get" then
+      if parts[2] == nil then
+        printColouredText("This command requires an argument\n", colours.red)
+      else
+        print(cfs_get(parts[2]) or "Cannot get '" .. parts[2] .. "'")
+      end
+    elseif action == "rm" then
+      if parts[2] == nil then
+        printColouredText("This command requires an argument\n", colours.red)
+      else
+        if cfs_delete(parts[2]) then
+          print("File deleted successfully")
+        else
+          print("Cannot delete '" .. parts[2] .. "'")
+        end
+      end
+    elseif action == "ls" then
+      cfs_list()
+    elseif action == "paths" then
+      if parts[2] == nil then
+        printColouredText("This command requires an argument\n", colours.red)
+      else
+        if cfs_paths(parts[2]) == nil then print("Cannot get '" .. parts[2] .. "'") end
+      end
+    elseif action == "download" then
+      cfs_download(parts[2])
+    elseif action == "exit" then
+      print("Exiting..")
+      return
+    else
+      print("Invalid command. Valid commands are: put, get, rm, ls, paths, exit")
     end
   end
 else
