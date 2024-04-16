@@ -59,7 +59,7 @@ end
 
 -- Function to store a chunk of file
 local function storeChunk(diskPath, filename, content)
-  local file = fs.open(diskPath .. "/" .. filename, "w")
+  local file = fs.open(diskPath .. "/" .. filename, "wb")
   if file then
     file.write(content)
     file.close()
@@ -190,8 +190,7 @@ function cfs_store(filepath)
     return nil
   end
   local filename = fs.getName(filepath)
-  local fileSize = fs.getSize(filepath)
-  local file = fs.open(filepath, "r")
+  local file = fs.open(filepath, "rb")
   local content = file.readAll()
   file.close()
   local success = storeFile(filename, content)
