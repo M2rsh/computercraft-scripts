@@ -299,7 +299,7 @@ if not pcall(getfenv, 4) then
       print("Exiting..")
       return
     else
-      print("Invalid command. Valid commands are: put, get, rm, ls, paths, exit")
+      print("Invalid command. Valid commands are: put, get, rm, download, ls, paths, exit")
     end
   end
 else
