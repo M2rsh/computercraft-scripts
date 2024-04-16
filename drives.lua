@@ -112,7 +112,7 @@ local function getFileChunk(filename, chunkIndex)
   local fullPath = getFileChunkPath(filename, chunkIndex)
 
   if fullPath ~= nil then
-    local file = fs.open(fullPath, "r")
+    local file = fs.open(fullPath, "rb")
     local content = file.readAll()
     file.close()
     return content
